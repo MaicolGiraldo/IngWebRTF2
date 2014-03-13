@@ -6,13 +6,16 @@ import java.util.List;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
 import co.edu.udea.iw.dao.PronosticoDao;
 import co.edu.udea.iw.dto.PaPartido;
 import co.edu.udea.iw.dto.PaPartidoId;
+import co.edu.udea.iw.dto.PmPuntosmes;
 import co.edu.udea.iw.dto.PrPronostico;
 import co.edu.udea.iw.dto.PrPronosticoId;
 import co.edu.udea.iw.util.exception.IWBLException;
@@ -54,48 +57,39 @@ public class PronosticoDaoImpl extends HibernateDaoSupport implements Pronostico
 			throws IWDaoException {
 		Session sesion = null;
 		List<PrPronostico> pronosticos = new ArrayList<PrPronostico>();
-		List<PrPronostico> prUsuario = new ArrayList<PrPronostico>();
+		
 		try {
 
 			sesion = getSession();
-			pronosticos = sesion.createCriteria(PrPronostico.class).list();
+			String hql = "FROM PrPronostico p WHERE p.usUsuario.usNombre='"+usuario+"'";
+			Query query = sesion.createQuery(hql);
+			pronosticos = query.list();
 			
-			for (PrPronostico pm : pronosticos) {
-				
-				String unNom =pm.getId().getPrUsNombre();
-				if (unNom.equals(usuario)) {
-					prUsuario.add(pm);
-				}
-			}
-
 		} catch (HibernateException e) {
 			log.error(
 					"error al obtener los pronosticos realizados por"+usuario ,
 					e);
 			throw new IWDaoException(e);
 		}
-		return prUsuario;
+		return pronosticos;
 
 	}
+	
 	@Override
 	public List<PrPronostico> consultarPronosticosPartido(PaPartido partido)
 			throws IWDaoException {
 		Session sesion = null;
 		List<PrPronostico> pronosticos = new ArrayList<PrPronostico>();
-		List<PrPronostico> prPartido = new ArrayList<PrPronostico>();
+		
 		try {
 
 			sesion = getSession();
-			pronosticos = sesion.createCriteria(PrPronostico.class).list();
+
+			String hql = "FROM PrPronostico p WHERE p.paPartido.id.paFecha = "+partido.getId().getPaFecha();
+			Query query = sesion.createQuery(hql);
+			pronosticos = query.list();
 			
-			for (PrPronostico pm : pronosticos) {				
-				PaPartido pa= pm.getPaPartido();
-				if(pa.equals(partido)){
-					prPartido.add(pm);
-				}
-				
-				
-			}
+
 
 		} catch (HibernateException e) {
 			log.error(
@@ -104,7 +98,7 @@ public class PronosticoDaoImpl extends HibernateDaoSupport implements Pronostico
 					e);
 			throw new IWDaoException(e);
 		}
-		return prPartido;
+		return pronosticos;
 
 	}
 	/**

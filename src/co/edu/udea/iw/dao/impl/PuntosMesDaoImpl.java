@@ -6,8 +6,10 @@ import java.util.List;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
 import co.edu.udea.iw.dao.PuntosMesDao;
@@ -88,26 +90,22 @@ public class PuntosMesDaoImpl extends HibernateDaoSupport implements PuntosMesDa
 			throws IWDaoException {
 		Session sesion = null;
 		List<PmPuntosmes> puntosMes = new ArrayList<PmPuntosmes>();
-		List<PmPuntosmes> tabla = new ArrayList<PmPuntosmes>();
 		try {
 
 			sesion = getSession();
-			puntosMes = sesion.createCriteria(PmPuntosmes.class).list();
-
-			for (PmPuntosmes pm : puntosMes) {
-				if (pm.getId().getUsMes() == mes
-						&& pm.getId().getUsAnno() == anno) {
-					tabla.add(pm);
-				}
-			}
-
+			
+			
+			String hql = "FROM PmPuntosmes p WHERE p.id.usMes ="+mes +"and p.id.usAnno="+anno;
+			Query query = sesion.createQuery(hql);
+			puntosMes = query.list();
+			
 		} catch (HibernateException e) {
 			log.error(
 					"error al obtener la tabla de posiciones del mes y anno seleccionados",
 					e);
 			throw new IWDaoException(e);
 		}
-		return tabla;
+		return puntosMes;
 	}
 	
 	/**

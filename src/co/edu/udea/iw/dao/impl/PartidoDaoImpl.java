@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
@@ -89,21 +90,18 @@ public class PartidoDaoImpl extends HibernateDaoSupport implements PartidoDao {
 	@Override
 	public List<PaPartido> consultarOferta(int mes) throws IWDaoException {
 
-		List<PaPartido> partidos = new ArrayList<PaPartido>();
-
-		partidos = obtenerPartidos();
-		/*
-		 * Filtrar partidos para entregar los de determinado mes
-		 */
-		Iterator i = partidos.iterator();
+		
 		List<PaPartido> partidosMes = new ArrayList<PaPartido>();
-		while (i.hasNext()) {
-			PaPartido partido = (PaPartido) i.next();
-			int mesPartido = partido.getPaMes();
-			if (mesPartido == mes) {
-				partidosMes.add(partido);
-			}
-
+		
+		try {
+			sesion = getSession();
+			String hql = "FROM PaPartido p WHERE MONTH(p.id.paFecha)="+mes ;
+			Query query = sesion.createQuery(hql);
+			partidosMes = query.list();
+			
+			} catch (HibernateException e) {
+			log.error("error al obtener los partidos", e);
+			throw new IWDaoException(e);
 		}
 		return partidosMes;
 	}
